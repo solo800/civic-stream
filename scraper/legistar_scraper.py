@@ -1,27 +1,36 @@
 import requests
 import json
 import logging
+import os
+import sys
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class LegistarScraper:
-    """Scraper for San Francisco Legistar API"""
+    """Scraper for NYC Legistar API"""
     
-    def __init__(self):
-        self.base_url = "https://webapi.legistar.com/v1/sanfrancisco"
+    def __init__(self, api_token: Optional[str] = None):
+        self.base_url = "https://webapi.legistar.com/v1/nyc"
+        self.api_token = api_token
         self.session = requests.Session()
         # Set a user agent to be polite
         self.session.headers.update({
             'User-Agent': 'civic-stream/1.0 (https://github.com/your-org/civic-stream)'
         })
     
+    def _add_token_to_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Add API token to request parameters if available"""
+        if self.api_token:
+            params['token'] = self.api_token
+        return params
+    
     def fetch_recent_matters(self, limit: int = 5) -> List[Dict[str, Any]]:
         """
-        Fetch recent matters from San Francisco Legistar API
+        Fetch recent matters from NYC Legistar API
         
         Args:
             limit: Number of matters to fetch (default 5)
@@ -34,9 +43,10 @@ class LegistarScraper:
             '$top': limit,
             '$orderby': 'MatterIntroDate desc'
         }
+        params = self._add_token_to_params(params)
         
         try:
-            logger.info(f"Fetching {limit} recent matters from Legistar API")
+            logger.info(f"Fetching {limit} recent matters from NYC Legistar API")
             response = self.session.get(url, params=params)
             response.raise_for_status()
             
@@ -83,7 +93,7 @@ class LegistarScraper:
             'text4': matter.get('MatterText4'),
             'text5': matter.get('MatterText5'),
             'date_scraped': datetime.utcnow().isoformat(),
-            'source_url': f"https://webapi.legistar.com/v1/sanfrancisco/matters/{matter.get('MatterId')}"
+            'source_url': f"https://webapi.legistar.com/v1/nyc/matters/{matter.get('MatterId')}"
         }
     
     def scrape_and_process(self, limit: int = 5) -> List[Dict[str, Any]]:
@@ -123,7 +133,7 @@ class LegistarScraper:
         """
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"sf_matters_{timestamp}.json"
+            filename = f"nyc_matters_{timestamp}.json"
         
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(matters, f, indent=2, ensure_ascii=False, default=str)
@@ -133,7 +143,20 @@ class LegistarScraper:
 
 def main():
     """Main execution function"""
-    scraper = LegistarScraper()
+    # Get API token from environment variable or command line argument
+    api_token = os.getenv('LEGISTAR_API_TOKEN')
+    
+    # Check for command line argument
+    if len(sys.argv) > 1:
+        api_token = sys.argv[1]
+    
+    if api_token:
+        logger.info("Using API token for authentication")
+    else:
+        logger.warning("No API token provided - some endpoints may be limited")
+        logger.info("Set LEGISTAR_API_TOKEN environment variable or pass token as first argument")
+    
+    scraper = LegistarScraper(api_token=api_token)
     
     try:
         # Scrape recent matters
