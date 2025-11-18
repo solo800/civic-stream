@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+import argparse
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
@@ -143,27 +144,38 @@ class LegistarScraper:
 
 def main():
     """Main execution function"""
-    # Get API token from environment variable or command line argument
-    api_token = os.getenv('LEGISTAR_API_TOKEN')
+    parser = argparse.ArgumentParser(description='Scrape NYC Legistar API for legislative matters')
+    parser.add_argument('--token', '-t', 
+                       help='API token for Legistar API (can also use LEGISTAR_API_TOKEN env var)')
+    parser.add_argument('--limit', '-l', type=int, default=5,
+                       help='Number of matters to fetch (default: 5)')
+    parser.add_argument('--output', '-o',
+                       help='Output filename (default: auto-generated with timestamp)')
     
-    # Check for command line argument
-    if len(sys.argv) > 1:
+    args = parser.parse_args()
+    
+    # Get API token from command line argument, environment variable, or legacy positional argument
+    api_token = args.token or os.getenv('LEGISTAR_API_TOKEN')
+    
+    # Legacy support: check if first argument looks like a token (for backward compatibility)
+    if not api_token and len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
         api_token = sys.argv[1]
+        logger.info("Using legacy positional argument for token")
     
     if api_token:
         logger.info("Using API token for authentication")
     else:
         logger.warning("No API token provided - some endpoints may be limited")
-        logger.info("Set LEGISTAR_API_TOKEN environment variable or pass token as first argument")
+        logger.info("Use --token <token>, set LEGISTAR_API_TOKEN environment variable, or pass token as first argument")
     
     scraper = LegistarScraper(api_token=api_token)
     
     try:
         # Scrape recent matters
-        matters = scraper.scrape_and_process(limit=5)
+        matters = scraper.scrape_and_process(limit=args.limit)
         
         # Save to JSON file
-        filename = scraper.save_to_json(matters)
+        filename = scraper.save_to_json(matters, args.output)
         
         # Print summary
         print(f"\nScraping completed successfully!")
