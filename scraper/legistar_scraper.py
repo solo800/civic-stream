@@ -6,6 +6,7 @@ import sys
 import argparse
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,12 +18,30 @@ class LegistarScraper:
     def __init__(self, city: str, api_token: Optional[str] = None):
         self.city = city
         self.base_url = f"https://webapi.legistar.com/v1/{city}"
-        self.api_token = api_token
+        
+        # Try to load API token from various sources
+        self.api_token = api_token or self._load_city_token(city)
+        
         self.session = requests.Session()
         # Set a user agent to be polite
         self.session.headers.update({
             'User-Agent': 'civic-stream/1.0 (https://github.com/your-org/civic-stream)'
         })
+    
+    def _load_city_token(self, city: str) -> Optional[str]:
+        """Load API token for city from city_keys.json file"""
+        try:
+            keys_file = Path(__file__).parent / "city_keys.json"
+            if keys_file.exists():
+                with open(keys_file, 'r') as f:
+                    city_keys = json.load(f)
+                    token = city_keys.get(city)
+                    if token:
+                        logger.info(f"Loaded API token for {city} from city_keys.json")
+                        return token
+        except Exception as e:
+            logger.debug(f"Could not load city token from file: {e}")
+        return None
     
     def _add_token_to_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Add API token to request parameters if available"""
