@@ -12,10 +12,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class LegistarScraper:
-    """Scraper for NYC Legistar API"""
+    """Scraper for Legistar API (works with any city)"""
     
-    def __init__(self, api_token: Optional[str] = None):
-        self.base_url = "https://webapi.legistar.com/v1/nyc"
+    def __init__(self, city: str, api_token: Optional[str] = None):
+        self.city = city
+        self.base_url = f"https://webapi.legistar.com/v1/{city}"
         self.api_token = api_token
         self.session = requests.Session()
         # Set a user agent to be polite
@@ -31,7 +32,7 @@ class LegistarScraper:
     
     def fetch_recent_matters(self, limit: int = 5) -> List[Dict[str, Any]]:
         """
-        Fetch recent matters from NYC Legistar API
+        Fetch recent matters from Legistar API
         
         Args:
             limit: Number of matters to fetch (default 5)
@@ -47,7 +48,7 @@ class LegistarScraper:
         params = self._add_token_to_params(params)
         
         try:
-            logger.info(f"Fetching {limit} recent matters from NYC Legistar API")
+            logger.info(f"Fetching {limit} recent matters from {self.city} Legistar API")
             response = self.session.get(url, params=params)
             response.raise_for_status()
             
@@ -94,7 +95,7 @@ class LegistarScraper:
             'text4': matter.get('MatterText4'),
             'text5': matter.get('MatterText5'),
             'date_scraped': datetime.utcnow().isoformat(),
-            'source_url': f"https://webapi.legistar.com/v1/nyc/matters/{matter.get('MatterId')}"
+            'source_url': f"https://webapi.legistar.com/v1/{self.city}/matters/{matter.get('MatterId')}"
         }
     
     def scrape_and_process(self, limit: int = 5) -> List[Dict[str, Any]]:
@@ -134,7 +135,7 @@ class LegistarScraper:
         """
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"nyc_matters_{timestamp}.json"
+            filename = f"{self.city}_matters_{timestamp}.json"
         
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(matters, f, indent=2, ensure_ascii=False, default=str)
@@ -144,7 +145,9 @@ class LegistarScraper:
 
 def main():
     """Main execution function"""
-    parser = argparse.ArgumentParser(description='Scrape NYC Legistar API for legislative matters')
+    parser = argparse.ArgumentParser(description='Scrape Legistar API for legislative matters')
+    parser.add_argument('city', 
+                       help='City code for Legistar API (e.g., "nyc", "chicago", "seattle")')
     parser.add_argument('--token', '-t', 
                        help='API token for Legistar API (can also use LEGISTAR_API_TOKEN env var)')
     parser.add_argument('--limit', '-l', type=int, default=5,
@@ -154,21 +157,16 @@ def main():
     
     args = parser.parse_args()
     
-    # Get API token from command line argument, environment variable, or legacy positional argument
+    # Get API token from command line argument or environment variable
     api_token = args.token or os.getenv('LEGISTAR_API_TOKEN')
-    
-    # Legacy support: check if first argument looks like a token (for backward compatibility)
-    if not api_token and len(sys.argv) > 1 and not sys.argv[1].startswith('-'):
-        api_token = sys.argv[1]
-        logger.info("Using legacy positional argument for token")
     
     if api_token:
         logger.info("Using API token for authentication")
     else:
         logger.warning("No API token provided - some endpoints may be limited")
-        logger.info("Use --token <token>, set LEGISTAR_API_TOKEN environment variable, or pass token as first argument")
+        logger.info("Use --token <token> or set LEGISTAR_API_TOKEN environment variable")
     
-    scraper = LegistarScraper(api_token=api_token)
+    scraper = LegistarScraper(city=args.city, api_token=api_token)
     
     try:
         # Scrape recent matters
@@ -179,11 +177,11 @@ def main():
         
         # Print summary
         print(f"\nScraping completed successfully!")
-        print(f"Fetched {len(matters)} matters")
+        print(f"Fetched {len(matters)} matters from {args.city}")
         print(f"Saved to: {filename}")
         
         # Print brief summary of each matter
-        print("\nRecent matters:")
+        print(f"\nRecent matters from {args.city}:")
         for matter in matters:
             print(f"- {matter['file_number']}: {matter['name']}")
             print(f"  Type: {matter['type']}, Status: {matter['status']}")
