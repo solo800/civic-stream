@@ -4,9 +4,14 @@
 civic-stream allows users to subscribe to public city communications (press releases, public notices, agendas, meeting minutes, budget documents, planning announcements, etc.) and receive AI-generated summaries with action links to email city officials or share opinions on social media.
 
 ## Current State
-**Early-stage MVP** - Basic project structure is in place. No code written yet.
+**Early-stage MVP** - Basic project structure is in place with initial scraper implementation.
 
-The project is currently being set up with directory scaffolding. We're starting with a single city to validate the concept before expanding.
+The project currently includes:
+- ✅ NYC Legistar API scraper with comprehensive test suite
+- ✅ Python dependency management (requirements.txt)
+- ✅ Project scaffolding and documentation
+
+We're starting with NYC's Legistar API to validate the concept before expanding to other cities and content types.
 
 ## Architecture
 
@@ -63,7 +68,48 @@ civic-stream/
 ```
 
 ## Getting Started
-*To be filled in once initial components are built*
+
+### Prerequisites
+- Python 3.8+
+- pip
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd civic-stream
+   ```
+
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Running the Scraper
+Test the NYC Legistar scraper:
+```bash
+cd scraper
+python legistar_scraper.py --limit 3
+```
+
+Run the test suite:
+```bash
+cd scraper
+python -m pytest test_legistar_scraper.py -v
+```
+
+### Dependencies
+Core dependencies are managed in `requirements.txt`:
+- `requests` - HTTP client for API calls
+- `pytest` - Testing framework
+- `black` - Code formatting
+- `flake8` - Code linting
 
 ## Development Notes
 
@@ -88,13 +134,16 @@ Starting broad with any public city communications rather than just meeting minu
 This makes the product more immediately useful and tests different scraping patterns.
 
 ## Next Steps
-- [ ] Choose target city with accessible content
-- [ ] Build basic scraper for one content type
+- [x] Choose target city with accessible content (NYC Legistar API)
+- [x] Build basic scraper for one content type (legislative matters)
+- [x] Add dependency management (requirements.txt)
+- [x] Create comprehensive test suite
 - [ ] Set up DynamoDB schema
 - [ ] Create summarization Lambda
 - [ ] Build simple frontend for email signup
 - [ ] Implement notification system
 - [ ] Test end-to-end flow with one city
+- [ ] Add Docker containerization for Fargate deployment
 
 ## Future Considerations
 - Multi-city support
