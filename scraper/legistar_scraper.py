@@ -22,6 +22,12 @@ class LegistarScraper:
         # Try to load API token from various sources
         self.api_token = api_token or self._load_city_token(city)
         
+        # Log token status
+        if self.api_token:
+            logger.info(f"Using API token for {city} (token: {self.api_token[:8]}...)")
+        else:
+            logger.info(f"No API token available for {city} - using public access")
+        
         self.session = requests.Session()
         # Set a user agent to be polite
         self.session.headers.update({
@@ -30,26 +36,34 @@ class LegistarScraper:
     
     def _load_city_token(self, city: str) -> Optional[str]:
         """Load API token for city from city_scraper.json file"""
+        keys_file = Path(__file__).parent / "city_scraper.json"
+        logger.debug(f"Looking for city token file at: {keys_file}")
+        
         try:
-            print(f'City scraper path {Path(__file__).parent / "city_scraper.json"} found: {True if Path(__file__).parent / "city_scraper.json" else False}')
-            keys_file = Path(__file__).parent / "city_scraper.json"
-            print(f'exists: {keys_file.exists()}')
             if keys_file.exists():
+                logger.debug(f"Found city token file: {keys_file}")
                 with open(keys_file, 'r') as f:
                     city_keys = json.load(f)
                     token = city_keys.get(city)
-                    print(f'Found token for {city} token {token}')
                     if token:
                         logger.info(f"Loaded API token for {city} from city_scraper.json")
                         return token
+                    else:
+                        logger.debug(f"No token found for city '{city}' in city_scraper.json")
+            else:
+                logger.debug(f"City token file does not exist: {keys_file}")
         except Exception as e:
-            logger.debug(f"Could not load city token from file: {e}")
+            logger.warning(f"Could not load city token from file: {e}")
+        
         return None
     
     def _add_token_to_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Add API token to request parameters if available"""
         if self.api_token:
             params['token'] = self.api_token
+            logger.debug(f"Added API token to request parameters")
+        else:
+            logger.debug("No API token available - making unauthenticated request")
         return params
     
     def fetch_recent_matters(self, limit: int = 5) -> List[Dict[str, Any]]:
