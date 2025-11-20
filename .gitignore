@@ -5,4 +5,4 @@ __pycache__/
 *.pyc
 .DS_Store
 venv/
-city_keys.json
+city_scraper.json

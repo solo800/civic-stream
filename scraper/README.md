@@ -4,7 +4,7 @@ A generic scraper for Legistar APIs that works with any city using the Legistar 
 
 ## Setup
 
-1. Create a `city_keys.json` file in this directory with your API tokens:
+1. Create a `city_scraper.json` file in this directory with your API tokens:
 ```json
 {
   "nyc": "your_nyc_token_here",
@@ -13,7 +13,7 @@ A generic scraper for Legistar APIs that works with any city using the Legistar 
 }
 ```
 
-2. The `city_keys.json` file is automatically ignored by git for security.
+2. The `city_scraper.json` file is automatically ignored by git for security.
 
 ## Manual Testing
 
@@ -37,7 +37,7 @@ py legistar_scraper.py nyc --limit 10 --output nyc_test.json
 
 ### Using API Tokens
 
-The scraper will automatically load tokens from `city_keys.json`. You can also:
+The scraper will automatically load tokens from `city_scraper.json`. You can also:
 
 Use environment variable:
 ```bash
@@ -89,7 +89,7 @@ head -50 nyc_matters_*.json
 ### Troubleshooting
 
 If you get a 403 error:
-- Make sure your API token is correct in `city_keys.json`
+- Make sure your API token is correct in `city_scraper.json`
 - Some cities may require tokens for all endpoints
 - Check that the city code is correct
 

@@ -29,15 +29,15 @@ class LegistarScraper:
         })
     
     def _load_city_token(self, city: str) -> Optional[str]:
-        """Load API token for city from city_keys.json file"""
+        """Load API token for city from city_scraper.json file"""
         try:
-            keys_file = Path(__file__).parent / "city_keys.json"
+            keys_file = Path(__file__).parent / "city_scraper.json"
             if keys_file.exists():
                 with open(keys_file, 'r') as f:
                     city_keys = json.load(f)
                     token = city_keys.get(city)
                     if token:
-                        logger.info(f"Loaded API token for {city} from city_keys.json")
+                        logger.info(f"Loaded API token for {city} from city_scraper.json")
                         return token
         except Exception as e:
             logger.debug(f"Could not load city token from file: {e}")
