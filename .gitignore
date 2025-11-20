@@ -7,4 +7,4 @@ __pycache__/
 venv/
 scraper/results/*
 !scraper/results/.gitkeep
-city_scraper.json
+scraper/city_scraper.json
