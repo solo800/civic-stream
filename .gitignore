@@ -5,4 +5,5 @@ __pycache__/
 *.pyc
 .DS_Store
 venv/
-scraper/results/
+scraper/results/*
+!scraper/results/.gitkeep
