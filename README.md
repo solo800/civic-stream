@@ -8,10 +8,13 @@ civic-stream allows users to subscribe to public city communications (press rele
 
 The project currently includes:
 - ✅ NYC Legistar API scraper with comprehensive test suite
+- ✅ Multi-city configuration system with token management
+- ✅ Environment variable and JSON file token loading
+- ✅ Results directory structure for organized output
 - ✅ Python dependency management (requirements.txt)
 - ✅ Project scaffolding and documentation
 
-We're starting with NYC's Legistar API to validate the concept before expanding to other cities and content types.
+We're starting with NYC's Legistar API to validate the concept before expanding to other cities and content types. The scraper now supports multiple cities with configurable token requirements.
 
 ## Architecture
 
@@ -55,6 +58,11 @@ We're starting with NYC's Legistar API to validate the concept before expanding 
 ```
 civic-stream/
 ├── scraper/              # Fargate container for scraping city sites
+│   ├── legistar_scraper.py      # Main scraper implementation
+│   ├── test_legistar_scraper.py # Comprehensive test suite
+│   ├── city_scraper.json        # City configuration and tokens
+│   └── results/                 # Output directory (gitignored)
+│       └── .gitkeep
 ├── functions/            # Lambda functions
 │   ├── summarize/       # Claude API summarization
 │   ├── notify/          # Email notifications
@@ -62,6 +70,7 @@ civic-stream/
 ├── frontend/            # Static React site
 │   ├── public/
 │   └── src/
+├── requirements.txt     # Python dependencies
 ├── .aider.conf.yml      # Aider configuration (Claude 4 Sonnet)
 ├── .gitignore
 └── README.md
@@ -92,17 +101,42 @@ civic-stream/
    ```
 
 ### Running the Scraper
-Test the NYC Legistar scraper:
+
+#### Prerequisites for NYC
+NYC requires an API token. You can provide it in two ways:
+
+1. **Environment variable** (recommended):
+   ```bash
+   export LEGISTAR_NYC_TOKEN="your_token_here"
+   cd scraper
+   python legistar_scraper.py nyc --limit 3
+   ```
+
+2. **Command line argument**:
+   ```bash
+   cd scraper
+   python legistar_scraper.py nyc --token "your_token_here" --limit 3
+   ```
+
+3. **Configuration file**: Add your token to `scraper/city_scraper.json`
+
+#### Test other cities (no token required):
 ```bash
 cd scraper
-python legistar_scraper.py --limit 3
+python legistar_scraper.py chicago --limit 3
+python legistar_scraper.py seattle --limit 3
+python legistar_scraper.py boston --limit 3
+python legistar_scraper.py oakland --limit 3
 ```
 
-Run the test suite:
+#### Run the test suite:
 ```bash
 cd scraper
 python -m pytest test_legistar_scraper.py -v
 ```
+
+#### Output
+All scraped data is automatically saved to `scraper/results/` directory with timestamped filenames like `nyc_matters_20231120_143022.json`.
 
 ### Dependencies
 Core dependencies are managed in `requirements.txt`:
@@ -110,6 +144,19 @@ Core dependencies are managed in `requirements.txt`:
 - `pytest` - Testing framework
 - `black` - Code formatting
 - `flake8` - Code linting
+
+### Configuration
+The scraper supports multiple cities through `scraper/city_scraper.json`:
+- **Token management**: Store API tokens securely
+- **Token requirements**: Configure which cities require authentication
+- **City descriptions**: Human-readable city names
+
+Supported cities:
+- **NYC** (token required): New York City Council
+- **Chicago** (public): Chicago City Council  
+- **Seattle** (public): Seattle City Council
+- **Boston** (public): Boston City Council
+- **Oakland** (public): Oakland City Council
 
 ## Development Notes
 
@@ -138,6 +185,9 @@ This makes the product more immediately useful and tests different scraping patt
 - [x] Build basic scraper for one content type (legislative matters)
 - [x] Add dependency management (requirements.txt)
 - [x] Create comprehensive test suite
+- [x] Multi-city configuration system
+- [x] Token management and authentication
+- [x] Results directory structure
 - [ ] Set up DynamoDB schema
 - [ ] Create summarization Lambda
 - [ ] Build simple frontend for email signup
