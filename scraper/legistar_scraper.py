@@ -199,15 +199,23 @@ class LegistarScraper:
         Returns:
             Filename of saved file
         """
+        # Create results directory if it doesn't exist
+        results_dir = Path(__file__).parent / "results"
+        results_dir.mkdir(exist_ok=True)
+        
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{self.city}_matters_{timestamp}.json"
+        
+        # Ensure filename is in the results directory
+        if not Path(filename).is_absolute():
+            filename = results_dir / filename
         
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(matters, f, indent=2, ensure_ascii=False, default=str)
         
         logger.info(f"Saved {len(matters)} matters to {filename}")
-        return filename
+        return str(filename)
 
 def main():
     """Main execution function"""
