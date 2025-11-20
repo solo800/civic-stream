@@ -20,18 +20,19 @@ A generic scraper for Legistar APIs that works with any city using the Legistar 
 ### Basic Usage
 
 Test with NYC (3 matters):
+Note that my alias for py3 is py.
 ```bash
-python legistar_scraper.py nyc --limit 3
+py legistar_scraper.py nyc --limit 3
 ```
 
 Test with Oakland (5 matters):
 ```bash
-python legistar_scraper.py oakland --limit 5
+py legistar_scraper.py oakland --limit 5
 ```
 
 Test with a custom output file:
 ```bash
-python legistar_scraper.py nyc --limit 10 --output nyc_test.json
+py legistar_scraper.py nyc --limit 10 --output nyc_test.json
 ```
 
 ### Using API Tokens
@@ -41,12 +42,12 @@ The scraper will automatically load tokens from `city_keys.json`. You can also:
 Use environment variable:
 ```bash
 export LEGISTAR_API_TOKEN="your_token_here"
-python legistar_scraper.py nyc --limit 3
+py legistar_scraper.py nyc --limit 3
 ```
 
 Use command line argument:
 ```bash
-python legistar_scraper.py nyc --token "your_token_here" --limit 3
+py legistar_scraper.py nyc --token "your_token_here" --limit 3
 ```
 
 ### Checking Results
@@ -73,10 +74,10 @@ Common city codes to test:
 Example test sequence:
 ```bash
 # Test NYC
-python legistar_scraper.py nyc --limit 2
+py legistar_scraper.py nyc --limit 2
 
 # Test Oakland  
-python legistar_scraper.py oakland --limit 2
+py legistar_scraper.py oakland --limit 2
 
 # Check what files were created
 ls -la *_matters_*.json
