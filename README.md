@@ -4,17 +4,19 @@
 civic-stream allows users to subscribe to public city communications (press releases, public notices, agendas, meeting minutes, budget documents, planning announcements, etc.) and receive AI-generated summaries with action links to email city officials or share opinions on social media.
 
 ## Current State
-**Early-stage MVP** - Basic project structure is in place with initial scraper implementation.
+**Early-stage MVP** - Basic project structure is in place with working scraper implementation.
 
 The project currently includes:
-- ✅ NYC Legistar API scraper with comprehensive test suite
-- ✅ Multi-city configuration system with token management
-- ✅ Environment variable and JSON file token loading
-- ✅ Results directory structure for organized output
+- ✅ Multi-city Legistar API scraper with comprehensive test suite
+- ✅ Token-based authentication system with fallback support
+- ✅ Environment variable and JSON configuration file management
+- ✅ Automated results directory structure with timestamped outputs
+- ✅ Robust error handling and logging throughout
+- ✅ City-specific configuration with token requirement validation
 - ✅ Python dependency management (requirements.txt)
-- ✅ Project scaffolding and documentation
+- ✅ Comprehensive documentation and project scaffolding
 
-We're starting with NYC's Legistar API to validate the concept before expanding to other cities and content types. The scraper now supports multiple cities with configurable token requirements.
+We're starting with Legistar APIs across multiple cities to validate the concept before expanding to other content types. The scraper currently supports 5 cities with configurable authentication requirements and produces structured JSON output for downstream processing.
 
 ## Architecture
 
@@ -103,7 +105,7 @@ civic-stream/
 ### Running the Scraper
 
 #### Prerequisites for NYC
-NYC requires an API token. You can provide it in two ways:
+NYC requires an API token. You can provide it in three ways:
 
 1. **Environment variable** (recommended):
    ```bash
@@ -118,7 +120,7 @@ NYC requires an API token. You can provide it in two ways:
    python legistar_scraper.py nyc --token "your_token_here" --limit 3
    ```
 
-3. **Configuration file**: Add your token to `scraper/city_scraper.json`
+3. **Configuration file**: Add your token to `scraper/city_scraper.json` (already configured)
 
 #### Test other cities (no token required):
 ```bash
@@ -129,6 +131,14 @@ python legistar_scraper.py boston --limit 3
 python legistar_scraper.py oakland --limit 3
 ```
 
+#### Available command line options:
+```bash
+python legistar_scraper.py <city> [options]
+  --limit, -l    Number of matters to fetch (default: 5)
+  --token, -t    API token for authentication
+  --output, -o   Custom output filename
+```
+
 #### Run the test suite:
 ```bash
 cd scraper
@@ -136,7 +146,11 @@ python -m pytest test_legistar_scraper.py -v
 ```
 
 #### Output
-All scraped data is automatically saved to `scraper/results/` directory with timestamped filenames like `nyc_matters_20231120_143022.json`.
+All scraped data is automatically saved to `scraper/results/` directory with timestamped filenames like `nyc_matters_20231120_143022.json`. Each output file contains structured JSON with:
+- Matter metadata (ID, file number, title, type, status)
+- Important dates (intro, agenda, passed, enactment)
+- Full text content and notes
+- Scraping timestamp and source URL
 
 ### Dependencies
 Core dependencies are managed in `requirements.txt`:
@@ -147,16 +161,19 @@ Core dependencies are managed in `requirements.txt`:
 
 ### Configuration
 The scraper supports multiple cities through `scraper/city_scraper.json`:
-- **Token management**: Store API tokens securely
-- **Token requirements**: Configure which cities require authentication
-- **City descriptions**: Human-readable city names
+- **Token management**: Store API tokens securely (base64 encoded)
+- **Token requirements**: Automatic validation prevents API calls without required tokens
+- **City descriptions**: Human-readable city names for documentation
+- **Flexible authentication**: Environment variables override config file settings
 
 Supported cities:
-- **NYC** (token required): New York City Council
-- **Chicago** (public): Chicago City Council  
-- **Seattle** (public): Seattle City Council
-- **Boston** (public): Boston City Council
-- **Oakland** (public): Oakland City Council
+- **NYC** (token required): New York City Council - Full legislative data access
+- **Chicago** (public): Chicago City Council - Public API access
+- **Seattle** (public): Seattle City Council - Public API access  
+- **Boston** (public): Boston City Council - Public API access
+- **Oakland** (public): Oakland City Council - Public API access
+
+The scraper automatically detects token requirements and will fail fast with clear error messages if authentication is needed but not provided.
 
 ## Development Notes
 
@@ -185,15 +202,19 @@ This makes the product more immediately useful and tests different scraping patt
 - [x] Build basic scraper for one content type (legislative matters)
 - [x] Add dependency management (requirements.txt)
 - [x] Create comprehensive test suite
-- [x] Multi-city configuration system
-- [x] Token management and authentication
-- [x] Results directory structure
-- [ ] Set up DynamoDB schema
-- [ ] Create summarization Lambda
-- [ ] Build simple frontend for email signup
-- [ ] Implement notification system
-- [ ] Test end-to-end flow with one city
+- [x] Multi-city configuration system with 5 supported cities
+- [x] Token management and authentication with environment variable support
+- [x] Results directory structure with organized JSON output
+- [x] Robust error handling and logging system
+- [x] Command-line interface with flexible options
+- [ ] Set up DynamoDB schema for storing scraped data
+- [ ] Create summarization Lambda using Claude API
+- [ ] Build simple frontend for email signup and city selection
+- [ ] Implement notification system with SES integration
+- [ ] Test end-to-end flow with one city (NYC ready for integration)
 - [ ] Add Docker containerization for Fargate deployment
+- [ ] Implement incremental scraping (only fetch new/updated matters)
+- [ ] Add support for additional Legistar endpoints (votes, people, events)
 
 ## Future Considerations
 - Multi-city support
