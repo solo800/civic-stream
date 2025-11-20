@@ -35,14 +35,21 @@ class LegistarScraper:
         })
     
     def _load_city_token(self, city: str) -> Optional[str]:
-        """Load API token for city from city_scraper.json file"""
+        """Load API token for city from city_scraper.json file or environment"""
+        # First try environment variable specific to the city
+        env_token = os.getenv(f'LEGISTAR_{city.upper()}_TOKEN')
+        if env_token:
+            logger.info(f"Loaded API token for {city} from environment variable LEGISTAR_{city.upper()}_TOKEN")
+            return env_token
+        
+        # Then try the JSON file
         keys_file = Path(__file__).parent / "city_scraper.json"
         logger.debug(f"Looking for city token file at: {keys_file}")
         
         try:
             if keys_file.exists():
                 logger.debug(f"Found city token file: {keys_file}")
-                with open(keys_file, 'r') as f:
+                with open(keys_file, 'r', encoding='utf-8') as f:
                     city_keys = json.load(f)
                     token = city_keys.get(city)
                     if token:
@@ -52,6 +59,9 @@ class LegistarScraper:
                         logger.debug(f"No token found for city '{city}' in city_scraper.json")
             else:
                 logger.debug(f"City token file does not exist: {keys_file}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in city_scraper.json: {e}")
+            logger.error("Please check the file for syntax errors or invalid characters")
         except Exception as e:
             logger.warning(f"Could not load city token from file: {e}")
         
