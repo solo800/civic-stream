@@ -8,4 +8,3 @@ venv/
 scraper/results/*
 !scraper/results/.gitkeep
 scraper/city_scraper.json
-scraper/city_scraper.json
