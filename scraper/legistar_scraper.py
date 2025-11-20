@@ -31,11 +31,14 @@ class LegistarScraper:
     def _load_city_token(self, city: str) -> Optional[str]:
         """Load API token for city from city_scraper.json file"""
         try:
+            print(f'City scraper path {Path(__file__).parent / "city_scraper.json"} found: {True if Path(__file__).parent / "city_scraper.json" else False}')
             keys_file = Path(__file__).parent / "city_scraper.json"
+            print(f'exists: {keys_file.exists()}')
             if keys_file.exists():
                 with open(keys_file, 'r') as f:
                     city_keys = json.load(f)
                     token = city_keys.get(city)
+                    print(f'Found token for {city} token {token}')
                     if token:
                         logger.info(f"Loaded API token for {city} from city_scraper.json")
                         return token
