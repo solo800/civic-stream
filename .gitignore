@@ -1,4 +1,5 @@
 .env
+api/.env
 .aider*
 node_modules/
 __pycache__/
